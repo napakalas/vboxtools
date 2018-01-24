@@ -53,7 +53,7 @@ def keyboardputscancode(chars):
     in the mapping are supported.
     """
 
-    return ' '.join('%x' % i for i in chain(
+    return ' '.join('%02x' % i for i in chain(
         *(key_scancode_map[c] for c in chars)))
 
 
