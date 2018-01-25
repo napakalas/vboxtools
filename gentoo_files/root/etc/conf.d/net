@@ -1,0 +1,2 @@
+config_eth0="dhcp"
+config_eth1="dhcp"

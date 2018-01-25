@@ -12,9 +12,27 @@ runscancode () {
         VBoxManage controlvm $VBOX_NAME keyboardputscancode
 }
 
-# VBoxManage controlvm $VBOX_NAME keyboardputscancode \
-#     $(echo ping | python scancode.py)
-
+set_vm_mac_ip () {
+    name=$1
+    net=$2
+    VBOX_MAC=$(
+        VBoxManage showvminfo ${name} | grep ${net} | \
+        sed -r 's/.*MAC: ([0-9A-F]*).*/\1/' | sed -r 's/(.{2})/:\1/g' | \
+        cut -b 2-
+    )
+    echo "mac is $VBOX_MAC"
+    VBOX_IP=$(
+        arp | grep -i ${VBOX_MAC} | cut -d' ' -f1
+    )
+    if [ -z $VBOX_IP ]; then
+        echo "failed to derive IP, cannot continue with automated installation"
+        false
+        return
+    fi
+    echo "ip is $VBOX_IP"
+    export VBOX_MAC=$VBOX_MAC
+    export VBOX_IP=$VBOX_IP
+}
 
 # don't provide the vm functions until things are defined
 for name in BOOT_ISO VBOX_NAME; do
@@ -26,7 +44,6 @@ for name in BOOT_ISO VBOX_NAME; do
 done
 
 create_vm () {
-
     # standard settings, modify with care
     export VBOX_HOME=$VBOX_ROOT/$VBOX_NAME
     export VBOX_IMG=$VBOX_HOME/$VBOX_NAME.vhd
@@ -74,12 +91,13 @@ create_vm () {
     mkdir -p $VBOX_ROOT
     VBoxManage createvm --name $VBOX_NAME --basefolder $VBOX_ROOT --register
     VBoxManage modifyvm $VBOX_NAME --ostype Gentoo_64 --memory=4096 \
+        --cpus $VBOX_N_CPU --ioapic on \
         --nic1 hostonly --nic2 nat --cableconnected1 on --cableconnected2 on \
         --nictype1 82540EM --nictype2 82540EM --hostonlyadapter1 $VBOX_NET
 
     VBoxManage storagectl $VBOX_NAME --name IDE --add ide --controller PIIX4
     VBoxManage storagectl $VBOX_NAME --name SATA --add sata \
-        --controller IntelAhci
+        --controller IntelAhci --portcount 4
 
     VBoxManage createmedium disk --size $VBOX_DISK_SIZE --format VHD \
         --filename $VBOX_IMG
