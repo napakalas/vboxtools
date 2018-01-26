@@ -1,0 +1,3 @@
+#!/bin/sh
+# VBoxManage controlvm "$VBOX_NAME" keyboardputscancode 1c 9c
+echo $(basename $0) $1 \"$2\" $3 "${@:4}"

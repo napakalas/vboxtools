@@ -26,8 +26,11 @@ putscancode () {
 }
 
 runscancode () {
-    putscancode $@ | xargs -n $VBOX_SCANCODE_LIMIT \
-        VBoxManage controlvm $VBOX_NAME keyboardputscancode
+    target=${2:-$VBOX_NAME}
+    default=${VBOX_SCANCODE_LIMIT-10}
+    limit=${3-$default}
+    putscancode $1 | xargs -n $limit \
+        VBoxManage controlvm "$target" keyboardputscancode
 }
 
 set_vm_mac_ip () {
