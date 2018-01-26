@@ -51,6 +51,29 @@ set_vm_mac_ip () {
     export VBOX_IP=$VBOX_IP
 }
 
+wait_vm_shutdown () {
+    # wait for a vm to shutdown, default 10 seconds
+    name=\"$1\"
+    timeout=${2:-10}  # default 10 seconds timeout
+    VBoxManage list vms |grep "$name" > /dev/null
+
+    if [ ! $? -eq 0 ]; then
+        echo "vm $name not found"
+        return 2
+    fi
+
+    for ((i=0; i <= $timeout; i++)) do
+        VBoxManage list runningvms |grep "$name" > /dev/null
+        if [ ! $? -eq 0 ]; then
+            return 0
+        fi
+        if [ $i -ne $timeout ]; then
+            sleep 1
+        fi
+    done
+    return 1
+}
+
 create_vm () {
     checkenv BOOT_ISO VBOX_NAME
     if [ ! $? -eq 0 ]; then
@@ -122,9 +145,4 @@ create_vm () {
 
     # finalize it with true to stop the last &&
     true
-}
-
-start_vm () {
-    # boot VM
-    VBoxManage startvm $VBOX_NAME
 }

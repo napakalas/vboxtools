@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-start_vm
+VBoxManage startvm "${VBOX_NAME}"
 
 # hit enter a couple times
 # first to boot from the iso.
@@ -57,7 +57,6 @@ if [ $? -ne 0 ]; then
 fi
 
 # run everything in a screen session
-runscancode "screen"
 runscancode "/etc/init.d/sshd start"
 runscancode "mkdir ~/.ssh"
 runscancode "echo $(cat $VBOX_PUBKEY) > ~/.ssh/authorized_keys"
@@ -73,4 +72,20 @@ rsync -re "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY" \
 
 # pass that as a stuff directly into the screen session
 ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY root@$VBOX_IP \
-    "screen -p 0 -X stuff './gentoo_files/init.sh^m'"
+    ./gentoo_files/init.sh
+
+wait_vm_shutdown "${VBOX_NAME}" 15
+
+if [ $? -ne 0 ]; then
+    echo "\"${VBOX_NAME}\" did not shutdown; cannot continue with verification"
+    exit 1
+fi
+
+# remove the boot iso for proper bootup.
+VBoxManage storageattach $VBOX_NAME --storagectl IDE --port 0 --device 0 \
+    --medium emptydrive
+
+VBoxManage startvm "${VBOX_NAME}"
+echo "the vm may be accessible after it completes the booting process using:"
+echo "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY \
+    root@$VBOX_IP"
