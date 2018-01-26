@@ -1,14 +1,18 @@
 #!/bin/bash
-# TODO automate the correct settings for this (e.g. symlink verified
-# files to these locations)
-export GENTOO_BOOT_ISO=./install-amd64-minimal.iso
-export GENTOO_STAGE3=./stage3-amd64.tar.xz
-export GENTOO_PORTAGE=./portage.tar.xz
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-export GENTOO_FILES=./gentoo_files
+# include library
+source $DIR/../lib/utils
 
-# spawn the vm using the common spawn script
-export VBOX_NAME=gentoo_vm
+# include configurations
+source $DIR/../share/config/base
+source $DIR/../share/config/gentoo
+if [ -f ./config ]; then
+    # override using version in local directory
+    source ./config
+fi
+
+export VBOX_NAME=$GENTOO_VM_NAME
 export BOOT_ISO=$GENTOO_BOOT_ISO
 
 # check that requried files are present and available.
@@ -22,10 +26,6 @@ for name in GENTOO_BOOT_ISO GENTOO_STAGE3 GENTOO_PORTAGE ; do
         exit 1
     fi
 done
-
-# include the spawn script
-# TODO name these things properly
-. ./spawn.sh
 
 create_vm
 
