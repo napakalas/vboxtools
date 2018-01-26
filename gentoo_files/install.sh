@@ -22,6 +22,12 @@ rc-update add syslog-ng default
 rc-update add cronie default
 rc-update add sshd default
 echo PermitRootLogin prohibit-password >> /etc/ssh/sshd_config
+
+cat << EOF >> /etc/default/grub
+GRUB_TIMEOUT=2
+GRUB_CMDLINE_LINUX="net.ifnames=0"
+EOF
+
 grub-install /dev/sda
 grub-mkconfig -o /boot/grub/grub.cfg
 echo "completing installation, removing installation script"
