@@ -10,17 +10,35 @@ load test_helper
 
     run checkenv BAR
     [ ! "$status" -eq 0 ]
-    [ "$output"="BAR is unset" ]
+    [ "$output" = "BAR is undefined" ]
 
     run checkenv FOO BAR
     [ ! "$status" -eq 0 ]
-    [ "$output"="BAR is unset" ]
+    [ "$output" = "BAR is undefined" ]
 }
 
 @test "checkenv set all" {
     FOO=foo
     BAR=bar
     result="$(checkenv FOO BAR)"
+    [ -z "$result" ]
+}
+
+@test "checkenvfile not created" {
+    fixture "checkenvfile"
+    FOO=foo
+    cd $FIXTURE_ROOT
+    run checkenvfile FOO
+    [ ! "$status" -eq 0 ]
+    [ "$output" = "foo is missing in working directory; aborting" ]
+}
+
+@test "checkenvfile created" {
+    fixture "checkenvfile"
+    BAR=bar
+    cd $FIXTURE_ROOT
+    run checkenvfile BAR
+    [ "$status" -eq 0 ]
     [ -z "$result" ]
 }
 

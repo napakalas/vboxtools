@@ -83,6 +83,11 @@ create_vm () {
         return 1
     fi
 
+    checkenvfile BOOT_ISO
+    if [ ! $? -eq 0 ]; then
+        return 1
+    fi
+
     # standard settings, modify with care
     export VBOX_HOME=$VBOX_ROOT/$VBOX_NAME
     export VBOX_IMG=$VBOX_HOME/$VBOX_NAME.vhd

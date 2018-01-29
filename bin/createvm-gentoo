@@ -12,20 +12,12 @@ if [ -f ./config ]; then
     source ./config
 fi
 
-export VBOX_NAME=$GENTOO_VM_NAME
-export BOOT_ISO=$GENTOO_BOOT_ISO
-
 # check that requried files are present and available.
-for name in GENTOO_BOOT_ISO GENTOO_STAGE3 GENTOO_PORTAGE ; do
-    if [ -z ${!name} ]; then
-        echo "${name} is undefined; aborting"
-        exit 1
-    fi
-    if [ ! -f ${!name} ]; then
-        echo "${!name} is missing in working directory; aborting"
-        exit 1
-    fi
-done
+export BOOT_ISO=$GENTOO_BOOT_ISO
+export VBOX_NAME=$GENTOO_VM_NAME
+
+checkenv GENTOO_STAGE3 GENTOO_PORTAGE
+checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE
 
 create_vm
 
