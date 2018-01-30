@@ -69,7 +69,7 @@ set_vm_mac_ip () {
         arp | grep -i ${VBOX_MAC} | cut -d' ' -f1
     )
     if [ -z $VBOX_IP ]; then
-        echo "failed to derive IP, cannot continue with automated installation"
+        echo "failed to derive IP"
         return 1
     fi
     echo "ip is $VBOX_IP"
