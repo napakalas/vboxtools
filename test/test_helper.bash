@@ -10,6 +10,7 @@ setup() {
 teardown() {
     cd $ORIGINAL_PWD
     export PATH=$ORIGINAL_PATH
-    # TODO bulk unset VBOX_*
-    unset VBOX_NAME
+    for key in `env |grep VBOX_ | cut -f1 -d=`; do
+        unset $key
+    done
 }

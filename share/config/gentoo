@@ -1,9 +1,8 @@
 #!/bin/bash
+export BOOT_ISO=./install-amd64-minimal.iso
+export VBOX_NAME=gentoo_vm
 
-# TODO automate the correct settings for this (e.g. symlink verified
-# files to these locations)
-export GENTOO_BOOT_ISO=./install-amd64-minimal.iso
 export GENTOO_STAGE3=./stage3-amd64.tar.xz
 export GENTOO_PORTAGE=./portage.tar.xz
 export GENTOO_FILES=./gentoo_files
-export GENTOO_VM_NAME=gentoo_vm
+export GENTOO_POSTBOOT_TIMEOUT=15

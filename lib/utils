@@ -3,6 +3,24 @@
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+reqstmt () {
+    eval $@
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
+}
+
+sourceconfigs () {
+    for name in $@; do
+        config=$DIR/../share/config/$name
+        if [ ! -f ${config} ]; then
+            echo "configfile '${config}' not found"
+            return 1
+        fi
+        source $config
+    done
+}
+
 checkenv () {
     for name in $@; do
         if [ -z ${!name} ]; then
@@ -13,6 +31,11 @@ checkenv () {
 }
 
 checkenvfile () {
+    checkenv $@
+    if [ ! $? -eq 0 ]; then
+        return 1
+    fi
+
     for name in $@; do
         if [ ! -f ${!name} ]; then
             echo "${!name} is missing in working directory; aborting"
@@ -77,23 +100,35 @@ wait_vm_shutdown () {
     return 1
 }
 
-create_vm () {
-    checkenv BOOT_ISO VBOX_NAME
+set_vm_environ () {
+    sourceconfigs base $@
     if [ ! $? -eq 0 ]; then
         return 1
     fi
 
-    checkenvfile BOOT_ISO
+    if [ -f ./config ]; then
+        # override using version in local directory
+        source ./config
+    fi
+
+    checkenv VBOX_NAME
     if [ ! $? -eq 0 ]; then
         return 1
     fi
 
-    # standard settings, modify with care
     export VBOX_HOME=$VBOX_ROOT/$VBOX_NAME
     export VBOX_IMG=$VBOX_HOME/$VBOX_NAME.vhd
     export VBOX_PRIVKEY=$VBOX_HOME/id_rsa
     export VBOX_PUBKEY=$VBOX_HOME/id_rsa.pub
     export VBOX_NET=vboxnet0
+}
+
+create_vm () {
+    set_vm_environ $@ &&
+    checkenvfile BOOT_ISO
+    if [ ! $? -eq 0 ]; then
+        return 1
+    fi
 
     # verify that the vm and image does not already exists yet
     VBoxManage showvminfo $VBOX_NAME 2>/dev/null >/dev/null

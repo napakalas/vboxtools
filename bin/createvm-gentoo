@@ -1,57 +1,19 @@
 #!/bin/bash
+
+# include related libraries
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/../lib/gentoo
 
-# include library
-source $DIR/../lib/utils
-
-# include configurations
-source $DIR/../share/config/base
-source $DIR/../share/config/gentoo
-if [ -f ./config ]; then
-    # override using version in local directory
-    source ./config
-fi
-
-# check that requried files are present and available.
-export BOOT_ISO=$GENTOO_BOOT_ISO
-export VBOX_NAME=$GENTOO_VM_NAME
-
-checkenv GENTOO_STAGE3 GENTOO_PORTAGE
-checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE
-
-create_vm
-
+create_vm gentoo
 if [ $? -ne 0 ]; then
     echo "failed to create vm ${VBOX_NAME} for gentoo build"
     exit 1
 fi
 
+reqstmt checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE
+
 VBoxManage startvm "${VBOX_NAME}"
-
-# hit enter a couple times
-# first to boot from the iso.
-sleep 5
-runscancode ""
-# then to select default keyboard layout.
-sleep 10
-runscancode ""
-
-echo "sleeping for 20 seconds before working"
-sleep 20
-
-# get the guest to talk to the host to populate the arp table
-runscancode "ping -c1 $VBOX_HOST_IP"
-
-set_vm_mac_ip $VBOX_NAME $VBOX_NET
-if [ $? -ne 0 ]; then
-    echo "failed to derive IP, cannot continue with automated installation"
-    exit 1
-fi
-
-# run everything in a screen session
-runscancode "/etc/init.d/sshd start"
-runscancode "mkdir ~/.ssh"
-runscancode "echo $(cat $VBOX_PUBKEY) > ~/.ssh/authorized_keys"
+prepare_gentoo_boot_iso
 
 scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY \
     $GENTOO_STAGE3 root@$VBOX_IP:stage3-amd64.tar
@@ -65,6 +27,15 @@ rsync -re "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY" \
 # pass that as a stuff directly into the screen session
 ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY root@$VBOX_IP \
     ./gentoo_files/init.sh
+
+if [ $? -ne 0 ]; then
+    echo "error with installation"
+    wait_vm_shutdown "${VBOX_NAME}" 15
+    if [ $? -ne 0 ]; then
+        echo "\"${VBOX_NAME}\" failed to shutdown"
+    fi
+    exit 1
+fi
 
 wait_vm_shutdown "${VBOX_NAME}" 15
 
