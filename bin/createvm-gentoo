@@ -4,51 +4,41 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../lib/gentoo
 
-create_vm gentoo
-if [ $? -ne 0 ]; then
-    echo "failed to create vm ${VBOX_NAME} for gentoo build"
-    exit 1
-fi
+create_vm gentoo || \
+    die "failed to create vm ${VBOX_NAME} for gentoo build"
 
-reqstmt checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE
+checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE || exit 1
 
 VBoxManage startvm "${VBOX_NAME}"
 prepare_gentoo_boot_iso
 
-scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY \
-    $GENTOO_STAGE3 root@$VBOX_IP:stage3-amd64.tar
+scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
+    "${GENTOO_STAGE3}" root@$VBOX_IP:stage3-amd64.tar
 
-scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY \
-    $GENTOO_PORTAGE root@$VBOX_IP:portage.tar
+scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
+    "${GENTOO_PORTAGE}" root@$VBOX_IP:portage.tar
 
-rsync -re "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY" \
-    $GENTOO_FILES/ root@$VBOX_IP:gentoo_files
+rsync -re \
+    "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\"" \
+    "${GENTOO_FILES}/" root@$VBOX_IP:gentoo_files
 
-# pass that as a stuff directly into the screen session
-ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY root@$VBOX_IP \
-    ./gentoo_files/init.sh
+ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
+    root@$VBOX_IP ./gentoo_files/init.sh
 
 if [ $? -ne 0 ]; then
-    echo "error with installation"
-    wait_vm_shutdown "${VBOX_NAME}" 15
-    if [ $? -ne 0 ]; then
-        echo "\"${VBOX_NAME}\" failed to shutdown"
-    fi
+    warn "error with installation"
+    forcepoweroff_vm "${VBOX_NAME}" 15
     exit 1
 fi
 
-wait_vm_shutdown "${VBOX_NAME}" 15
-
-if [ $? -ne 0 ]; then
-    echo "\"${VBOX_NAME}\" did not shutdown; cannot continue with verification"
-    exit 1
-fi
+wait_vm_shutdown "${VBOX_NAME}" 15 || \
+    die "'${VBOX_NAME}' did not shutdown; cannot continue with verification"
 
 # remove the boot iso for proper bootup.
-VBoxManage storageattach $VBOX_NAME --storagectl IDE --port 0 --device 0 \
+VBoxManage storageattach "${VBOX_NAME}" --storagectl IDE --port 0 --device 0 \
     --medium emptydrive
 
 VBoxManage startvm "${VBOX_NAME}"
 echo "the vm may be accessible after it completes the booting process using:"
-echo "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i $VBOX_PRIVKEY \
+echo "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\" \
     root@$VBOX_IP"
