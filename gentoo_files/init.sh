@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 parted --script /dev/sda \
     mklabel gpt \
     mkpart primary 0 1MB \
@@ -22,4 +23,6 @@ cp -L /etc/resolv.conf /mnt/gentoo/etc/
 cp -a /root/.ssh /mnt/gentoo/root/
 cp ~/gentoo_files/install.sh /mnt/gentoo
 echo "entering chroot"
-chroot /mnt/gentoo /bin/bash /install.sh ; umount -R /mnt/gentoo ; halt
+chroot /mnt/gentoo /bin/bash /install.sh
+umount -R /mnt/gentoo
+halt

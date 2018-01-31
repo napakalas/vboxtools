@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 source /etc/profile
 emerge --update --deep --newuse @world
 emerge app-admin/syslog-ng app-portage/gentoolkit net-misc/dhcpcd \
