@@ -122,6 +122,17 @@ load test_helper
     [ ! "$status" -eq 0 ]
 }
 
+@test "sourceconfigs base defaults" {
+    HOME=/home/demo
+    sourceconfigs base
+    [ "$VBOX_ROOT" = "/home/demo/vm" ]
+
+    # should not overwrite
+    VBOX_ROOT='/tmp/somewhere/else'
+    sourceconfigs base
+    [ "$VBOX_ROOT" = "/tmp/somewhere/else" ]
+}
+
 @test "find_vm various" {
     fixture "listvms"
     export PATH=$FIXTURE_ROOT:$PATH
@@ -152,6 +163,10 @@ load test_helper
     run check_vm_running 'demo v'
     [ ! "$status" -eq 0 ]
 
+    # blank input
+    run check_vm_running ""
+    [ ! "$status" -eq 0 ]
+
     run check_vm_running 'demo vm'
     [ "$status" -eq 0 ]
     run check_vm_running 'demo_vm'
@@ -174,4 +189,5 @@ load test_helper
     [ -z "$output" ]
     # TODO check that appropriate VBoxManage calls were actually made
 }
+
 # vim: set filetype=sh:

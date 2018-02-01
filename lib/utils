@@ -119,7 +119,7 @@ forcepoweroff_vm () {
     return 1
 }
 
-set_vm_environ () {
+source_vm_environ () {
     sourceconfigs base $@
     if [ ! $? -eq 0 ]; then
         return 1
@@ -130,11 +130,12 @@ set_vm_environ () {
         source ./config
     fi
 
-    checkenv VBOX_NAME
-    if [ ! $? -eq 0 ]; then
-        return 1
-    fi
+    checkenv VBOX_NAME || return 1
+    set_vm_environ "${VBOX_NAME}"
+}
 
+set_vm_environ () {
+    export VBOX_NAME="${1}"
     export VBOX_HOME="${VBOX_ROOT}/${VBOX_NAME}"
     export VBOX_IMG="${VBOX_HOME}/${VBOX_NAME}.vhd"
     export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
@@ -143,7 +144,7 @@ set_vm_environ () {
 }
 
 create_vm () {
-    set_vm_environ $@ &&
+    source_vm_environ $@ &&
     checkenvfile BOOT_ISO || return 1
 
     # verify that the vm and image does not already exists yet
@@ -210,8 +211,10 @@ create_vm () {
 }
 
 connect_vm () {
-    set_vm_environ $@
-    set_vm_mac_ip
+    if [ ! -f "${VBOX_PRIVKEY}" ]; then
+        echo "credential at '${VBOX_PRIVKEY}' does not exist; aborting"
+        return 1
+    fi
     ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
         root@${VBOX_IP}
 }
