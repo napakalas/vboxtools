@@ -139,11 +139,8 @@ load test_helper
 
     run find_vm demo
     [ ! "$status" -eq 0 ]
-    [ "${lines[0]}" = "vm 'demo' not found" ]
-
     run find_vm 'demo v'
     [ ! "$status" -eq 0 ]
-    [ "${lines[0]}" = "vm 'demo v' not found" ]
 
     run find_vm 'demo vm'
     [ "$status" -eq 0 ]
@@ -178,7 +175,7 @@ load test_helper
     export PATH=$FIXTURE_ROOT:$PATH
     run wait_vm_shutdown demo
     [ "$status" -eq 2 ]
-    [ "${lines[0]}" = "vm 'demo' not found" ]
+    [ "${lines[0]}" = "'demo' is not a registered machine" ]
 }
 
 @test "wait_vm_shutdown stayed running" {

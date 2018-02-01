@@ -12,6 +12,10 @@ die () {
     exit 1
 }
 
+warn_invalid_vm () {
+    warn "'${1}' is not a registered machine"
+}
+
 sourceconfigs () {
     for name in $@; do
         config=$DIR/../share/config/$name
@@ -80,10 +84,6 @@ find_vm () {
     # provide the double quotes to ensure full string is matched against
     # the double-quoted output.
     VBoxManage list vms |grep "\"${name}\"" > /dev/null
-    if [ ! $? -eq 0 ]; then
-        warn "vm '${name}' not found"
-        return 1
-    fi
 }
 
 check_vm_running () {
@@ -96,7 +96,7 @@ wait_vm_shutdown () {
     name=$1
     timeout=${2:-10}  # default 10 seconds timeout
 
-    find_vm "${name}" || return 2
+    find_vm "${name}" || { warn_invalid_vm "${name}" && return 2; }
     for ((i=0; i <= $timeout; i++)) do
         # return success code 0 if no longer running
         check_vm_running "${name}" || return 0

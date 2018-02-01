@@ -15,7 +15,7 @@ if [ -z "${VBOX_NAME}" ]; then
     exit 2
 fi
 
-find_vm "${VBOX_NAME}" || die
+find_vm "${VBOX_NAME}" || { warn_invalid_vm "${name}" && exit 1; }
 check_vm_running "${VBOX_NAME}" || \
     die "'${VBOX_NAME}' is not running; start it with:" \
         "VBoxManage startvm '${VBOX_NAME}'"
