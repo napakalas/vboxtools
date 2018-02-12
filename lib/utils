@@ -2,6 +2,8 @@
 # change these settings to a more suitable form
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+FILE_BASE=$( cd "${DIR}/../share/vboxtools" && pwd )
+CONFIG_BASE=$( cd "${DIR}/../share/config/vboxtools" && pwd )
 
 warn () {
     echo $@ >&2
@@ -17,8 +19,11 @@ warn_invalid_vm () {
 }
 
 sourceconfigs () {
+    VBOX_FILE_BASE="${FILE_BASE}"
+    VBOX_CONFIG_BASE="${CONFIG_BASE}"
+
     for name in $@; do
-        config=$DIR/../share/config/$name
+        config="${CONFIG_BASE}/${name}"
         if [ ! -f "${config}" ]; then
             warn "configfile '${config}' not found"
             return 1
