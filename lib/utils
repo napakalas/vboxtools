@@ -136,16 +136,23 @@ source_vm_environ () {
     fi
 
     checkenv VBOX_NAME || return 1
-    set_vm_environ "${VBOX_NAME}"
+    set_base_vm_environ "${VBOX_NAME}"
 }
 
-set_vm_environ () {
+set_base_vm_environ () {
     export VBOX_NAME="${1}"
     export VBOX_HOME="${VBOX_ROOT}/${VBOX_NAME}"
     export VBOX_IMG="${VBOX_HOME}/${VBOX_NAME}.vhd"
     export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
     export VBOX_PUBKEY="${VBOX_HOME}/id_rsa.pub"
     export VBOX_NET=vboxnet0
+}
+
+
+activate_vm () {
+    sourceconfigs base
+    set_base_vm_environ "${1}"
+    set_vm_mac_ip "${VBOX_NAME}" "${VBOX_NET}"
 }
 
 create_vm () {

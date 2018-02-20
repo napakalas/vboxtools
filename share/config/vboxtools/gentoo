@@ -5,4 +5,3 @@ export VBOX_NAME=gentoo_vm
 export GENTOO_STAGE3=./stage3-amd64.tar.xz
 export GENTOO_PORTAGE=./portage.tar.xz
 export GENTOO_FILES=${VBOX_FILE_BASE}/gentoo_files
-export GENTOO_POSTBOOT_TIMEOUT=15

@@ -5,7 +5,7 @@ load test_helper
 . lib/gentoo
 
 @test "gentoo base files available" {
-    run sourceconfigs base gentoo
+    sourceconfigs base gentoo
     [ -d "${GENTOO_FILES}" ]
 }
 
