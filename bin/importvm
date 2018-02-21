@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+# include related libraries
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/../lib/utils
+
+if [ -z "${2}" ]; then
+    die "usage: ${0} <ova_file> <new_vm_name>"
+fi
+
+if [ ! -f "${1}" ]; then
+    die "cannot find ova file \"${1}\""
+fi
+
+VBOX_NAME="${2}"
+OVA_FILE="${1}"
+
+find_vm "${VBOX_NAME}" && die "vm \"${VBOX_NAME}\" already registered"
+
+VBoxManage import "${OVA_FILE}" --vsys 0 --vmname "${VBOX_NAME}"
+
+find_vm_home "${VBOX_NAME}" || die "failed to find vm \"${VBOX_NAME}\""
+
+echo "extracting keypair files to \"${VBOX_PRIVKEY}\" and \"${VBOX_PUBKEY}\""
+tar -x --file="${OVA_FILE}" -C "${VBOX_HOME}" id_rsa id_rsa.pub

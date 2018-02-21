@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+# include related libraries
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+source $DIR/../lib/utils
+
+if [ -z "${1}" ]; then
+    die "usage: ${0} <vm_name>"
+fi
+
+find_vm_home "${1}" || die "failed to find vm \"${1}\""
+check_vm_running "${1}" && die "cannot export running vm \"${1}\""
+
+VBoxManage export "${VBOX_NAME}" --output "${VBOX_NAME}".ova
+echo "adding keypair files \"${VBOX_PRIVKEY}\" and \"${VBOX_PUBKEY}\""
+tar --append --file="${VBOX_NAME}".ova -C "${VBOX_HOME}" id_rsa id_rsa.pub
