@@ -34,6 +34,9 @@ fi
 wait_vm_shutdown "${VBOX_NAME}" 15 || \
     die "'${VBOX_NAME}' did not shutdown; cannot continue with verification"
 
+# timeout to wait for the VirtualBox registry to fully sync up
+sleep 1
+
 # remove the boot iso for proper bootup.
 VBoxManage storageattach "${VBOX_NAME}" --storagectl IDE --port 0 --device 0 \
     --medium emptydrive
