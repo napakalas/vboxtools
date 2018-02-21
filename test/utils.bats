@@ -187,4 +187,20 @@ load test_helper
     # TODO check that appropriate VBoxManage calls were actually made
 }
 
+@test "find_vm_home found" {
+    fixture "showvminfo"
+    export PATH=$FIXTURE_ROOT:$PATH
+    find_vm_home demo_vm
+    [ "$VBOX_NAME" = "demo_vm" ]
+    [ "$VBOX_HOME" = "/tmp/vmhome" ]
+    [ "$VBOX_PUBKEY" = "/tmp/vmhome/id_rsa.pub" ]
+}
+
+@test "find_vm_home not found unset" {
+    fixture "vbfailure"
+    export PATH=$FIXTURE_ROOT:$PATH
+    run find_vm_home demo_vm
+    [ ! "$status" -eq 0 ]
+}
+
 # vim: set filetype=sh:

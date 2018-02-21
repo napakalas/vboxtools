@@ -148,6 +148,32 @@ set_base_vm_environ () {
     export VBOX_NET=vboxnet0
 }
 
+find_vm_home () {
+    vm_vars=$(VBoxManage showvminfo --machinereadable "${1}" 2>/dev/null)
+    if [ ! $? -eq 0 ]; then
+        return 1
+    fi
+
+    export CfgFile=$(
+        echo "${vm_vars}" |grep CfgFile | cut -f2 -d= | \
+        sed -e 's/^"//' -e 's/"$//'
+    )
+    if [ -z "${CfgFile}" ]; then
+        return 1
+    fi
+
+    export VBOX_NAME="${1}"
+    export VBOX_HOME=$( dirname "${CfgFile}" )
+    # assume first disk
+    export VBOX_IMG=$(
+        echo "${vm_vars}" |grep SATA-0-0 | cut -f2 -d= | \
+        sed -e 's/^"//' -e 's/"$//'
+    )
+    export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
+    export VBOX_PUBKEY="${VBOX_HOME}/id_rsa.pub"
+    # assumption
+    export VBOX_NET=vboxnet0
+}
 
 activate_vm () {
     sourceconfigs base

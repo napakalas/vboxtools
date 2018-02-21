@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "
+CfgFile=\"/tmp/vmhome/foo.vbox\"
+\"SATA-0-0\"=\"/tmp/vmhome/foo.vhd\"
+"
