@@ -203,13 +203,40 @@ load test_helper
     [ ! "$status" -eq 0 ]
 }
 
-@test "parse_common_args" {
+@test "argparser_common" {
     args="--vbox-name some_vm"
-    parse_common_args $args
+    argparser_common $args
     [ "$VBOX_NAME" = "some_vm" ]
     [ "$args" = "--vbox-name some_vm" ]
-    parse_common_args "-n" "another_vm"
+    argparser_common "-n" "another_vm"
     [ "$VBOX_NAME" = "another_vm" ]
+}
+
+@test "generate_help_text" {
+    run generate_help_text common
+    [[ "${output}" == *"-n, --vbox-name"* ]]
+}
+
+@test "argparse generic" {
+    export ARGPARSERS="common"
+    args="--vbox-name some_vm"
+    argparse $args
+    [ "$VBOX_NAME" = "some_vm" ]
+}
+
+@test "argparse with quotes" {
+    export ARGPARSERS="common"
+    argparse --vbox-name "some vm"
+    [ "$VBOX_NAME" = "some vm" ]
+}
+
+@test "argparse generic help" {
+    export ARGPARSERS="common"
+    args="--help foo"
+    run argparse $args
+    [ "$status" -ne 0 ]
+    [[ "${output}" == *"-h, --help"* ]]
+    [[ "${output}" == *"-n, --vbox-name"* ]]
 }
 
 # vim: set filetype=sh:

@@ -263,11 +263,14 @@ connect_vm () {
         root@${VBOX_IP}
 }
 
-parse_common_args () {
+# consider moving the argparse* things to own module
+
+argparser_common () {
     while [[ $# > 0 ]]; do
         opt="$1"
         case "${opt}" in
             -n|--vbox-name)
+                __h="set name of the VirtualBox machine; assign to VBOX_NAME"
                 export VBOX_NAME="$2"
                 shift
                 shift
@@ -276,5 +279,40 @@ parse_common_args () {
                 shift
                 ;;
         esac
+    done
+}
+
+argparser_help () {
+    while [[ $# > 0 ]]; do
+        opt="$1"
+        case "${opt}" in
+            -h|--help)
+                __h="show this help message"
+                echo "usage: $(basename $0) ..."
+                generate_help_text "help" ${ARGPARSERS}
+                # yeah this is horrible but whatever.
+                exit 1
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+}
+
+argparse () {
+    for argparser in "help" ${ARGPARSERS}; do
+        argparser_${argparser} "$@"
+    done
+}
+
+generate_help_text () {
+    # TODO plug in the argument placeholder itself.
+    for argparser in $*; do
+        type argparser_${argparser} | \
+            grep -E "(-. \| --| __h=\")" | \
+            sed -re 's/ {8}(-.) \| (--[^\)]*)\)/\1, \2/' | \
+            sed -re 's/ {8}__h="(.*)";/\1/'
     done
 }
