@@ -203,4 +203,13 @@ load test_helper
     [ ! "$status" -eq 0 ]
 }
 
+@test "parse_common_args" {
+    args="--vbox-name some_vm"
+    parse_common_args $args
+    [ "$VBOX_NAME" = "some_vm" ]
+    [ "$args" = "--vbox-name some_vm" ]
+    parse_common_args "-n" "another_vm"
+    [ "$VBOX_NAME" = "another_vm" ]
+}
+
 # vim: set filetype=sh:
