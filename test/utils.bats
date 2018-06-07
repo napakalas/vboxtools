@@ -239,4 +239,33 @@ load test_helper
     [[ "${output}" == *"-n, --vbox-name"* ]]
 }
 
+@test "argparse source config" {
+    fixture "configfile"
+    export ARGPARSERS="common"
+    args="--config ${FIXTURE_ROOT}/config"
+    argparse $args
+    [ "$VBOX_NAME" = "config_vm_name" ]
+}
+
+@test "argparse source config order" {
+    fixture "configfile"
+    export ARGPARSERS="common"
+
+    args="--config ${FIXTURE_ROOT}/config -n changed"
+    argparse $args
+    [ "$VBOX_NAME" = "changed" ]
+
+    args="-n changed --config ${FIXTURE_ROOT}/config"
+    argparse $args
+    [ "$VBOX_NAME" = "config_vm_name" ]
+}
+
+@test "argparse source config failure" {
+    fixture "configfile"
+    export ARGPARSERS="common"
+    args="--config ${FIXTURE_ROOT}/no_such_config"
+    run argparse $args
+    [ "$status" -ne 0 ]
+}
+
 # vim: set filetype=sh:

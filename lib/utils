@@ -136,17 +136,12 @@ source_vm_environ () {
         return 1
     fi
 
-    if [ -f ./config ]; then
-        # override using version in local directory
-        source ./config
-    fi
-
     checkenv VBOX_NAME || return 1
-    set_base_vm_environ "${VBOX_NAME}"
+    set_base_vm_environ
 }
 
 set_base_vm_environ () {
-    export VBOX_NAME="${1}"
+    export VBOX_NAME="${VBOX_NAME:-"${1}"}"
     export VBOX_HOME="${VBOX_ROOT}/${VBOX_NAME}"
     export VBOX_IMG="${VBOX_HOME}/${VBOX_NAME}.vhd"
     export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
@@ -269,6 +264,15 @@ argparser_common () {
     while [[ $# > 0 ]]; do
         opt="$1"
         case "${opt}" in
+            -c|--config)
+                __h="source next argument into the script for config values"
+                source "$2"
+                if [ $? -ne 0 ]; then
+                    return 1
+                fi
+                shift
+                shift
+                ;;
             -n|--vbox-name)
                 __h="set name of the VirtualBox machine; assign to VBOX_NAME"
                 export VBOX_NAME="$2"

@@ -1,7 +1,9 @@
 #!/bin/bash
-export BOOT_ISO=./install-amd64-minimal.iso
-export VBOX_NAME=gentoo_vm
+export GENTOO_STAGE3=${GENTOO_STAGE3:-"./stage3-amd64.tar.xz"}
+export GENTOO_PORTAGE=${GENTOO_PORTAGE:-"./portage.tar.xz"}
+export GENTOO_BOOT_ISO=${GENTOO_BOOT_ISO:-"./install-amd64-minimal.iso"}
+export GENTOO_FILES=${GENTOO_FILES:-"${VBOX_FILE_BASE}/gentoo_files"}
 
-export GENTOO_STAGE3=./stage3-amd64.tar.xz
-export GENTOO_PORTAGE=./portage.tar.xz
-export GENTOO_FILES=${VBOX_FILE_BASE}/gentoo_files
+# plus the default
+export BOOT_ISO=${GENTOO_BOOT_ISO}
+export VBOX_NAME=${VBOX_NAME:-"gentoo_vm"}

@@ -1,8 +1,16 @@
 #!/bin/bash
-
 # include related libraries
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../lib/gentoo
+
+# process command line arguments first to set environment variables from
+# valid command line arguments
+export ARGPARSERS="common"
+argparse $*
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
 
 create_vm gentoo || \
     die "failed to create vm ${VBOX_NAME} for gentoo build"
