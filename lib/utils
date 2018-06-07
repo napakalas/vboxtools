@@ -290,8 +290,7 @@ argparser_help () {
                 __h="show this help message"
                 echo "usage: $(basename $0) ..."
                 generate_help_text "help" ${ARGPARSERS}
-                # yeah this is horrible but whatever.
-                exit 1
+                return 1
                 shift
                 ;;
             *)
@@ -304,6 +303,9 @@ argparser_help () {
 argparse () {
     for argparser in "help" ${ARGPARSERS}; do
         argparser_${argparser} "$@"
+        if [ $? -ne 0 ]; then
+            return 1
+        fi
     done
 }
 
