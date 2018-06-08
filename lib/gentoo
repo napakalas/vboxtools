@@ -28,3 +28,29 @@ prepare_gentoo_boot_iso() {
     runscancode "mkdir ~/.ssh"
     runscancode "echo $(cat "${VBOX_PUBKEY}") > ~/.ssh/authorized_keys"
 }
+
+download_gentoo_release() {
+    local retvar="${1}"
+    local release="${2}"
+    local release_path="${GENTOO_RELEASE_PATH:-"releases/amd64/autobuilds"}"
+    local release_root="${GENTOO_MIRROR}/${release_path}"
+    local latest_release_path="${release_root}/latest-${release}.txt"
+
+    local blob_path=$(
+        wget -q "${latest_release_path}" -O - | \
+        grep "${release}" | \
+        cut -f1 -d' '
+    )
+
+    if [ -z "$blob_path" ]; then
+        warn "cannot find/download release '${2}'"
+        return 1
+    fi
+
+    local url="${release_root}/${blob_path}"
+    local target="$(basename "${url}")"
+    wget -c -nv "${url}" -O "${target}"
+    # also get the signed checksum file.
+    wget -c -nv "${url}.DIGESTS.asc" -O "${target}.DIGESTS.asc"
+    eval "${1}='${target}'"
+}

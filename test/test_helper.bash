@@ -13,7 +13,7 @@ teardown() {
     export PATH=$ORIGINAL_PATH
     export HOME=$ORIGINAL_HOME
     unset ARGPARSERS
-    for key in `env |grep VBOX_ | cut -f1 -d=`; do
+    for key in $(env |grep -E "(GENTOO|VBOX|TEST)_" | cut -f1 -d=); do
         unset $key
     done
 }
