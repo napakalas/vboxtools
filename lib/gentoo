@@ -29,7 +29,7 @@ prepare_gentoo_boot_iso() {
     runscancode "echo $(cat "${VBOX_PUBKEY}") > ~/.ssh/authorized_keys"
 }
 
-download_gentoo_portage_snapshot() {
+download_gentoo_portage() {
     # download the latest portage snapshot
     # default up to 5 days old
     local age=${GENTOO_MAX_AGE:-5}
@@ -37,7 +37,7 @@ download_gentoo_portage_snapshot() {
     # typically dated.
     for ((day=1; day<=age; day++)); do
         local date=$(date -u +%Y%m%d --date="$day day ago")
-        local url="${GENTOO_MIRROR}/snapshots/portage-${date}.tar.xz"
+        local url="${GENTOO_MIRROR}/snapshots/${GENTOO_PORTAGE_ID}-${date}.tar.xz"
         local target=$(basename ${url})
         wget -c -nv "${url}"
         if [ $? = 0 ]; then
@@ -51,7 +51,7 @@ download_gentoo_portage_snapshot() {
     return 1
 }
 
-download_gentoo_release() {
+_download_gentoo_release() {
     local retvar="${1}"
     local release="${2}"
     local release_path="${GENTOO_RELEASE_PATH:-"releases/amd64/autobuilds"}"
@@ -75,4 +75,12 @@ download_gentoo_release() {
     # also get the signed checksum file.
     wget -c -nv "${url}.DIGESTS.asc"
     eval "${1}='${target}'"
+}
+
+download_gentoo_stage3() {
+    _download_gentoo_release "${1}" "${GENTOO_STAGE3_ID}"
+}
+
+download_gentoo_boot_iso() {
+    _download_gentoo_release "${1}" "${GENTOO_BOOT_ISO_ID}"
 }

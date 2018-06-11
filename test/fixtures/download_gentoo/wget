@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 txt='# Latest as of Mon, 01 Jun 2018 00:00:00 +0000
 # ts=1514718000
 20180101T000000Z/${TEST_release}-20180101T000000Z.iso 123456789
@@ -11,7 +13,7 @@ if [ "${1}" = "-q" ]; then
 elif [ "${1}" = "-c" ]; then
     # assume -c is to fetch the actual file and wget is executed as
     # wget -c -nv ${url}
-    echo "${3}" > $(basename ${3})
+    echo "${3}" > "$(basename "${3}")"
     echo "2001-01-01 00:00:00 URL:${3} [101/101] -> \"$(basename ${3})\" [1]" >&2
 fi
 
