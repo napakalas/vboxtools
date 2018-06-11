@@ -84,3 +84,35 @@ download_gentoo_stage3() {
 download_gentoo_boot_iso() {
     _download_gentoo_release "${1}" "${GENTOO_BOOT_ISO_ID}"
 }
+
+locate_gentoo_part() {
+    local bintype="${1^^}"
+    local dl="GENTOO_DOWNLOAD_${bintype}"
+    local id="GENTOO_${bintype}_ID"
+    local var="GENTOO_${bintype}"
+    local download_method="download_gentoo_${1}"
+    local fileext="${2}"
+    if [ -z ${!id} ]; then
+        warn "${id} is not defined"
+        exit 1
+    fi
+
+    if [ ${!dl} ]; then
+        ${download_method} "GENTOO_${bintype}"
+    else
+        local files=(${!id}*${fileext})
+        eval "${var}=${files[-1]}"
+    fi;
+
+    if [ ! -f ${!var} ]; then
+        warn "failed to locate ${var}, defined as \"${!var}\""
+        return 1
+    fi
+    info "${var} set as \"${!var}\""
+}
+
+locate_gentoo_archives() {
+    locate_gentoo_part boot_iso .iso
+    locate_gentoo_part stage3 .tar.xz
+    locate_gentoo_part portage .tar.xz
+}
