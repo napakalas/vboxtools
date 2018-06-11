@@ -29,6 +29,28 @@ prepare_gentoo_boot_iso() {
     runscancode "echo $(cat "${VBOX_PUBKEY}") > ~/.ssh/authorized_keys"
 }
 
+download_gentoo_portage_snapshot() {
+    # download the latest portage snapshot
+    # default up to 5 days old
+    local age=${GENTOO_MAX_AGE:-5}
+    # start always from yesterday, since this is how the snapshots are
+    # typically dated.
+    for ((day=1; day<=age; day++)); do
+        local date=$(date -u +%Y%m%d --date="$day day ago")
+        local url="${GENTOO_MIRROR}/snapshots/portage-${date}.tar.xz"
+        local target=$(basename ${url})
+        wget -c -nv "${url}" -O "${target}"
+        if [ $? = 0 ]; then
+            wget -c -nv "${url}.gpgsig" -O "${target}.gpgsig"
+            eval "${1}='${target}'"
+            return 0
+        fi
+    done
+
+    warn "failed to download gentoo snapshot"
+    return 1
+}
+
 download_gentoo_release() {
     local retvar="${1}"
     local release="${2}"

@@ -14,3 +14,5 @@ elif [ "${1}" = "-c" ]; then
     echo "${3}" > $(basename ${3})
     echo "2001-01-01 00:00:00 URL:${3} [101/101] -> \"$(basename ${3})\" [1]" >&2
 fi
+
+exit $TEST_retval
