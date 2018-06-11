@@ -2,7 +2,7 @@
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../lib/utils
 
-prepare_gentoo_boot_iso() {
+prepare_gentoo_boot_iso_environment() {
     timeout=${GENTOO_POSTBOOT_TIMEOUT:-15}
     # hit enter a couple times
     # first to boot from the iso.
@@ -115,4 +115,30 @@ locate_gentoo_archives() {
     locate_gentoo_part boot_iso .iso
     locate_gentoo_part stage3 .tar.xz
     locate_gentoo_part portage .tar.xz
+}
+
+argparser_gentoo () {
+    while [[ $# > 0 ]]; do
+        opt="$1"
+        case "${opt}" in
+            -m|--mirror)
+                __h="specify the Gentoo mirror (default <${GENTOO_MIRROR}>)"
+                shift
+                ;;
+            -U|--update)
+                __h="download/use the most up-to-date images and snapshots"
+                GENTOO_DOWNLOAD_PORTAGE=1
+                GENTOO_DOWNLOAD_STAGE3=1
+                GENTOO_DOWNLOAD_BOOT_ISO=1
+                shift
+                ;;
+            --skip-signature-check)
+                __h="skip signature verification"
+                shift
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
 }

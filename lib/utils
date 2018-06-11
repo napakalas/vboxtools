@@ -314,11 +314,11 @@ argparse () {
 }
 
 generate_help_text () {
-    # TODO plug in the argument placeholder itself.
     for argparser in $*; do
-        type argparser_${argparser} | \
-            grep -E "(-. \| --| __h=\")" | \
+        echo "$(type argparser_${argparser} | \
+            grep -E "((-. \| )?--| __h=\")" | \
             sed -re 's/ {8}(-.) \| (--[^\)]*)\)/\1, \2/' | \
-            sed -re 's/ {8}__h="(.*)";/\1/'
+            sed -re 's/ {8}(--[^\)]*)\)/\1/' | \
+            sed -re 's/ {8}__h="(.*)";/\1/')" | envsubst
     done
 }

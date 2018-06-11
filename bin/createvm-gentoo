@@ -5,12 +5,18 @@ source $DIR/../lib/gentoo
 
 # process command line arguments first to set environment variables from
 # valid command line arguments
-export ARGPARSERS="common"
-argparse $*
+export ARGPARSERS="common gentoo"
 
+# assigning creation only variables here.
+# TODO figure out how to best potentially override them?
+source $DIR/../share/config/vboxtools/gentoo-base
+
+argparse $*
 if [ $? -ne 0 ]; then
     exit 1
 fi
+
+locate_gentoo_archives
 
 create_vm gentoo || \
     die "failed to create vm ${VBOX_NAME} for gentoo build"
@@ -18,7 +24,8 @@ create_vm gentoo || \
 checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE || exit 1
 
 VBoxManage startvm "${VBOX_NAME}"
-prepare_gentoo_boot_iso
+
+prepare_gentoo_boot_iso_environment
 
 scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
     "${GENTOO_STAGE3}" root@$VBOX_IP:stage3-amd64.tar

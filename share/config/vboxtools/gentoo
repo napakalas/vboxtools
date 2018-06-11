@@ -1,10 +1,4 @@
 #!/bin/bash
-export GENTOO_PLATFORM="${GENTOO_PLATFORM:-"amd64"}"
-
-export GENTOO_BOOT_ISO_ID="${GENTOO_BOOT_ISO_ID:-"install-${GENTOO_PLATFORM}-minimal"}"
-export GENTOO_PORTAGE_ID="${GENTOO_PORTAGE_ID:-"portage"}"
-export GENTOO_STAGE3_ID="${GENTOO_STAGE3_ID:-"stage3-${GENTOO_PLATFORM}"}"
-
 export GENTOO_FILES=${GENTOO_FILES:-"${VBOX_FILE_BASE}/gentoo_files"}
 
 # plus the default
