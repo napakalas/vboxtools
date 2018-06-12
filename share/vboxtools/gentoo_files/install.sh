@@ -18,6 +18,8 @@ echo -e "$(blkid | grep sda2 | cut -f2 -d\ )\t\t/\t\text4\trw,noatime\t0 1" \
     >> /etc/fstab
 ln -s net.lo /etc/init.d/net.eth0
 ln -s net.lo /etc/init.d/net.eth1
+source /etc/conf.d/hostname
+sed -i "s/\tlocalhost/\tlocalhost ${hostname}/" /etc/hosts
 rc-update add acpid default
 rc-update add net.eth0 default
 rc-update add syslog-ng default
