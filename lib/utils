@@ -294,6 +294,17 @@ argparser_common () {
                 shift
                 shift
                 ;;
+            -V|--version)
+                __h="show version information"
+                echo "$(basename $0) 0.0.0"
+                return 2
+                shift
+                ;;
+            -v|--verbose)
+                __h="verbose output"
+                export VBOX_DEBUG=1
+                shift
+                ;;
             *)
                 shift
                 ;;
