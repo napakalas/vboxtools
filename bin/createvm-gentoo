@@ -25,6 +25,9 @@ if [ $? -ne 0 ]; then
 fi
 
 locate_gentoo_archives
+if [ -z $_SKIP_GENTOO_VERIFY ]; then
+    verify_gentoo_archives
+fi
 
 create_vm gentoo || \
     die "failed to create vm ${VBOX_NAME} for gentoo build"

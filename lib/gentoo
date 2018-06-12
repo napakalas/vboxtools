@@ -118,6 +118,16 @@ locate_gentoo_archives() {
     locate_gentoo_part portage .tar.xz
 }
 
+verify_gentoo_archives () {
+    gpg --verify "${GENTOO_PORTAGE}.gpgsig" "${GENTOO_PORTAGE}"
+    gpg --verify "${GENTOO_STAGE3}.DIGESTS.asc"
+    gpg --verify "${GENTOO_BOOT_ISO}.DIGESTS.asc"
+    grep "$(sha512sum "${GENTOO_STAGE3}")" "${GENTOO_STAGE3}.DIGESTS.asc" >\
+        /dev/null || die "checksum error for \"${GENTOO_STAGE3}\""
+    grep "$(sha512sum "${GENTOO_BOOT_ISO}")" "${GENTOO_BOOT_ISO}.DIGESTS.asc" >\
+        /dev/null || die "checksum error for \"${GENTOO_BOOT_ISO}\""
+}
+
 argparser_gentoo () {
     while [[ $# > 0 ]]; do
         opt="$1"
@@ -135,6 +145,7 @@ argparser_gentoo () {
                 ;;
             --skip-signature-check)
                 __h="skip signature verification"
+                _SKIP_GENTOO_VERIFY=1
                 shift
                 ;;
             *)
