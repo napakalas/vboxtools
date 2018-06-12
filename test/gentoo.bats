@@ -57,10 +57,8 @@ load test_helper
     # since the dummy wget creates the exact file name, just check that
     # the intended effect is achieved.
     download_gentoo_portage GENTOO_SNAPSHOT
-    run bash -c "ls ${TEST_TMPDIR}/${GENTOO_SNAPSHOT} | wc -l"
-    [ "${output}" = '1' ]
-    run bash -c "ls ${TEST_TMPDIR}/${GENTOO_SNAPSHOT}.gpgsig | wc -l"
-    [ "${output}" = '1' ]
+    [ "$(ls "${TEST_TMPDIR}/${GENTOO_SNAPSHOT}" | wc -l)" = '1' ]
+    [ "$(ls "${TEST_TMPDIR}/${GENTOO_SNAPSHOT}.gpgsig" | wc -l)" = '1' ]
 }
 
 @test "test download_gentoo_portage fail" {
@@ -71,7 +69,7 @@ load test_helper
     export TEST_retval=1
     cd "${TEST_TMPDIR}"
     run download_gentoo_portage GENTOO_SNAPSHOT
-    [[ ${lines[4]} == *$(date +%Y%m%d --date='5 days ago')* ]]
+    [[ ${lines[4]} = *$(date +%Y%m%d --date='5 days ago')* ]]
     [[ ${lines[5]} = "failed to download gentoo snapshot" ]]
     [ ${#lines[@]} -eq 6 ]
 }

@@ -219,8 +219,8 @@ load test_helper
 
 @test "argparse generic" {
     export ARGPARSERS="common"
-    args="--vbox-name some_vm"
-    argparse $args
+    args=(--vbox-name some_vm)
+    argparse "${args[@]}"
     [ "$VBOX_NAME" = "some_vm" ]
 }
 
@@ -232,8 +232,8 @@ load test_helper
 
 @test "argparse generic help" {
     export ARGPARSERS="common"
-    args="--help foo"
-    run argparse $args
+    args=(--help foo)
+    run argparse "${args[@]}"
     [ "$status" -ne 0 ]
     [[ "${output}" == *"-h, --help"* ]]
     [[ "${output}" == *"-n, --vbox-name"* ]]
@@ -242,8 +242,8 @@ load test_helper
 @test "argparse source config" {
     fixture "configfile"
     export ARGPARSERS="common"
-    args="--config ${FIXTURE_ROOT}/config"
-    argparse $args
+    args=(--config ${FIXTURE_ROOT}/config)
+    argparse "${args[@]}"
     [ "$VBOX_NAME" = "config_vm_name" ]
 }
 
@@ -251,20 +251,29 @@ load test_helper
     fixture "configfile"
     export ARGPARSERS="common"
 
-    args="--config ${FIXTURE_ROOT}/config -n changed"
-    argparse $args
+    args=(--config ${FIXTURE_ROOT}/config -n changed)
+    argparse "${args[@]}"
     [ "$VBOX_NAME" = "changed" ]
 
-    args="-n changed --config ${FIXTURE_ROOT}/config"
-    argparse $args
+    args=(-n changed --config ${FIXTURE_ROOT}/config)
+    argparse "${args[@]}"
     [ "$VBOX_NAME" = "config_vm_name" ]
+}
+
+@test "argparse space in name" {
+    fixture "configfile"
+    export ARGPARSERS="common"
+
+    args=("-n" "foo bar baz")
+    argparse "${args[@]}"
+    [ "$VBOX_NAME" = "foo bar baz" ]
 }
 
 @test "argparse source config failure" {
     fixture "configfile"
     export ARGPARSERS="common"
-    args="--config ${FIXTURE_ROOT}/no_such_config"
-    run argparse $args
+    args=(--config ${FIXTURE_ROOT}/no_such_config)
+    run argparse "${args[@]}"
     [ "$status" -ne 0 ]
 }
 

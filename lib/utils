@@ -1,6 +1,8 @@
 #!/bin/bash
 # change these settings to a more suitable form
 
+set -e
+
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FILE_BASE=$( cd "${DIR}/../share/vboxtools" && pwd )
 CONFIG_BASE=$( cd "${DIR}/../share/config/vboxtools" && pwd )
@@ -70,8 +72,8 @@ runscancode () {
 }
 
 set_vm_mac_ip () {
-    name=$1
-    net=$2
+    name="$1"
+    net="$2"
     VBOX_MAC=$(
         VBoxManage showvminfo "${name}" | grep "${net}" | \
         sed -r 's/.*MAC: ([0-9A-F]*).*/\1/' | sed -r 's/(.{2})/:\1/g' | \
@@ -91,21 +93,21 @@ set_vm_mac_ip () {
 }
 
 find_vm () {
-    name=$1
+    name="$1"
     # provide the double quotes to ensure full string is matched against
     # the double-quoted output.
     VBoxManage list vms |grep "\"${name}\"" > /dev/null
 }
 
 check_vm_running () {
-    name=$1
+    name="$1"
     VBoxManage list runningvms |grep "\"${name}\"" > /dev/null
 }
 
 wait_vm_shutdown () {
     # wait for a vm to shutdown, default 10 seconds
-    name=$1
-    timeout=${2:-10}  # default 10 seconds timeout
+    name="$1"
+    timeout="${2:-10}"  # default 10 seconds timeout
 
     find_vm "${name}" || { warn_invalid_vm "${name}" && return 2; }
     for ((i=0; i <= $timeout; i++)) do
@@ -120,11 +122,11 @@ wait_vm_shutdown () {
 }
 
 forcepoweroff_vm () {
-    name=$1
-    timeout=$2
+    name="$1"
+    timeout="$2"
     # try to trigger an acpi shutdown for a more graceful shutdown first
     VBoxManage controlvm "${name}" acpipowerbutton
-    wait_vm_shutdown "${name}" $timeout && return 0
+    wait_vm_shutdown "${name}" "${timeout}" && return 0
     warn "'${name}' failed to shutdown; forcing poweroff"
     VBoxManage controlvm "${name}" poweroff
     return 1
@@ -183,7 +185,7 @@ activate_vm () {
 }
 
 create_vm () {
-    source_vm_environ $@ &&
+    source_vm_environ $@
     checkenvfile BOOT_ISO || return 1
 
     # verify that the vm and image does not already exists yet
@@ -218,35 +220,30 @@ create_vm () {
         grep IPAddress| awk '{print $2}'
     )
 
-    # create the VM; end each command with &&
-
-    mkdir -p "${VBOX_ROOT}" &&
+    mkdir -p "${VBOX_ROOT}"
     VBoxManage createvm --name "${VBOX_NAME}" --basefolder "${VBOX_ROOT}" \
-        --register &&
+        --register
     VBoxManage modifyvm "${VBOX_NAME}" --ostype Gentoo_64 --memory=4096 \
         --cpus $VBOX_N_CPU --ioapic on \
         --nic1 hostonly --nic2 nat --cableconnected1 on --cableconnected2 on \
         --nictype1 82540EM --nictype2 82540EM \
-        --hostonlyadapter1 "${VBOX_NET}" &&
+        --hostonlyadapter1 "${VBOX_NET}"
 
     VBoxManage storagectl "${VBOX_NAME}" --name IDE --add ide \
-        --controller PIIX4 &&
+        --controller PIIX4
     VBoxManage storagectl "${VBOX_NAME}" --name SATA --add sata \
-        --controller IntelAhci --portcount 4 &&
+        --controller IntelAhci --portcount 4
 
     VBoxManage createmedium disk --size $VBOX_DISK_SIZE --format VHD \
-        --filename "${VBOX_IMG}" &&
+        --filename "${VBOX_IMG}"
 
     VBoxManage storageattach "${VBOX_NAME}" --storagectl IDE --port 0 \
-        --device 0 --type dvddrive --medium "${BOOT_ISO}" &&
+        --device 0 --type dvddrive --medium "${BOOT_ISO}"
     VBoxManage storageattach "${VBOX_NAME}" --storagectl SATA --port 0 \
-        --device 0 --type hdd --medium "${VBOX_IMG}" &&
+        --device 0 --type hdd --medium "${VBOX_IMG}"
 
     # generate ssh keys
-    ssh-keygen -N '' -C "${VBOX_NAME}" -f "${VBOX_PRIVKEY}" &&
-
-    # finalize it with true to stop the last &&
-    true
+    ssh-keygen -N '' -C "${VBOX_NAME}" -f "${VBOX_PRIVKEY}"
 }
 
 connect_vm () {

@@ -11,7 +11,7 @@ export ARGPARSERS="common gentoo"
 # TODO figure out how to best potentially override them?
 source $DIR/../share/config/vboxtools/gentoo-base
 
-argparse $*
+argparse "$@"
 if [ $? -ne 0 ]; then
     exit 1
 fi
