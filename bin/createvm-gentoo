@@ -1,4 +1,12 @@
 #!/bin/bash
+set -e
+
+cleanup () {
+    warn "error with installation"
+    forcepoweroff_vm "${VBOX_NAME}" 15
+    return 1
+}
+
 # include related libraries
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../lib/gentoo
@@ -21,30 +29,30 @@ locate_gentoo_archives
 create_vm gentoo || \
     die "failed to create vm ${VBOX_NAME} for gentoo build"
 
-checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE || exit 1
+checkenvfile GENTOO_STAGE3 GENTOO_PORTAGE
 
 VBoxManage startvm "${VBOX_NAME}"
 
-prepare_gentoo_boot_iso_environment
+# ensure all the VM setup is executed and checked in one step in own
+# subshell
+(
+    set -e
+    prepare_gentoo_boot_iso_environment
 
-scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
-    "${GENTOO_STAGE3}" root@$VBOX_IP:stage3-amd64.tar
+    scp "${VBOX_SSH_FLAGS[@]}" "${GENTOO_STAGE3}" \
+        root@$VBOX_IP:stage3-amd64.tar
 
-scp -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
-    "${GENTOO_PORTAGE}" root@$VBOX_IP:portage.tar
+    scp "${VBOX_SSH_FLAGS[@]}" "${GENTOO_PORTAGE}" \
+        root@$VBOX_IP:portage.tar
 
-rsync -re \
-    "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\"" \
-    "${GENTOO_FILES}/" root@$VBOX_IP:gentoo_files
+    rsync -re "ssh $(printf "'%s' " "${VBOX_SSH_FLAGS[@]}")" \
+      "${GENTOO_FILES}/" root@$VBOX_IP:gentoo_files
 
-ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
-    root@$VBOX_IP ./gentoo_files/init.sh
+    ssh "${VBOX_SSH_FLAGS[@]}" root@$VBOX_IP ./gentoo_files/init.sh
+) &
 
-if [ $? -ne 0 ]; then
-    warn "error with installation"
-    forcepoweroff_vm "${VBOX_NAME}" 15
-    exit 1
-fi
+# wait for that to complete.
+wait $! || cleanup
 
 wait_vm_shutdown "${VBOX_NAME}" 15 || \
     die "'${VBOX_NAME}' did not shutdown; cannot continue with verification"
@@ -57,6 +65,11 @@ VBoxManage storageattach "${VBOX_NAME}" --storagectl IDE --port 0 --device 0 \
     --medium emptydrive
 
 VBoxManage startvm "${VBOX_NAME}"
-echo "the vm may be accessible after it completes the booting process using:"
-echo "ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\" \
-    root@$VBOX_IP"
+
+cat << EOF
+Once the VM is fully booted, connect to it using the folowing helper script:
+    ${DIR}/connectvm \"${VBOX_NAME}\"
+
+The following command will do the same (host key must be manually accepted):
+    ssh -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\" root@$VBOX_IP
+EOF

@@ -27,6 +27,7 @@ prepare_gentoo_boot_iso_environment() {
     runscancode "/etc/init.d/sshd start"
     runscancode "mkdir ~/.ssh"
     runscancode "echo $(cat "${VBOX_PUBKEY}") > ~/.ssh/authorized_keys"
+    update_host_keys
 }
 
 download_gentoo_portage() {

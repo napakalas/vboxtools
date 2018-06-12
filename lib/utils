@@ -1,8 +1,7 @@
 #!/bin/bash
-# change these settings to a more suitable form
-
 set -e
 
+# change these settings to a more suitable form
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 FILE_BASE=$( cd "${DIR}/../share/vboxtools" && pwd )
 CONFIG_BASE=$( cd "${DIR}/../share/config/vboxtools" && pwd )
@@ -146,9 +145,30 @@ set_base_vm_environ () {
     export VBOX_NAME="${VBOX_NAME:-"${1}"}"
     export VBOX_HOME="${VBOX_ROOT}/${VBOX_NAME}"
     export VBOX_IMG="${VBOX_HOME}/${VBOX_NAME}.vhd"
+    set_vm_common
+}
+
+set_vm_common () {
     export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
     export VBOX_PUBKEY="${VBOX_HOME}/id_rsa.pub"
+    # this is an assumption
     export VBOX_NET=vboxnet0
+    export VBOX_KNOWN_HOSTS=${VBOX_ROOT}/known_hosts
+    export VBOX_SSH_FLAGS=(
+        -oBatchMode=Yes
+        -oUserKnownHostsFile="${VBOX_KNOWN_HOSTS}"
+        -i "${VBOX_PRIVKEY}"
+    )
+}
+
+update_host_keys () {
+    touch "${VBOX_KNOWN_HOSTS}" 2>/dev/null
+    if [ ! -f "${VBOX_KNOWN_HOSTS}" ]; then
+        warn "known hosts file '${VBOX_KNOWN_HOSTS}' not found."
+        return 1
+    fi
+    ssh-keygen -R "${VBOX_IP}" -f "${VBOX_KNOWN_HOSTS}" > /dev/null 2>&1
+    ssh-keyscan -H "${VBOX_IP}" 2>/dev/null >> "${VBOX_KNOWN_HOSTS}"
 }
 
 find_vm_home () {
@@ -172,10 +192,8 @@ find_vm_home () {
         echo "${vm_vars}" |grep SATA-0-0 | cut -f2 -d= | \
         sed -e 's/^"//' -e 's/"$//'
     )
-    export VBOX_PRIVKEY="${VBOX_HOME}/id_rsa"
-    export VBOX_PUBKEY="${VBOX_HOME}/id_rsa.pub"
-    # assumption
-    export VBOX_NET=vboxnet0
+
+    set_vm_common
 }
 
 activate_vm () {
@@ -251,8 +269,8 @@ connect_vm () {
         echo "credential at '${VBOX_PRIVKEY}' does not exist; aborting"
         return 1
     fi
-    ssh -oStrictHostKeyChecking=no -oBatchMode=Yes -i "${VBOX_PRIVKEY}" \
-        root@${VBOX_IP}
+    update_host_keys
+    ssh "${VBOX_SSH_FLAGS[@]}" root@${VBOX_IP}
 }
 
 # consider moving the argparse* things to own module
