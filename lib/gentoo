@@ -72,6 +72,7 @@ _download_gentoo_release() {
 
     local url="${release_root}/${blob_path}"
     local target="$(basename "${url}")"
+    info "downloading '${target}'"
     wget -c -nv "${url}"
     # also get the signed checksum file.
     wget -c -nv "${url}.DIGESTS.asc"

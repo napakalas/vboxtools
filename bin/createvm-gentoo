@@ -20,9 +20,6 @@ export ARGPARSERS="common gentoo"
 source $DIR/../share/config/vboxtools/gentoo-base
 
 argparse "$@"
-if [ $? -ne 0 ]; then
-    exit 1
-fi
 
 locate_gentoo_archives
 if [ -z $_SKIP_GENTOO_VERIFY ]; then
@@ -70,9 +67,9 @@ VBoxManage storageattach "${VBOX_NAME}" --storagectl IDE --port 0 --device 0 \
 VBoxManage startvm "${VBOX_NAME}"
 
 cat << EOF
-Once the VM is fully booted, connect to it using the folowing helper script:
-    ${DIR}/connectvm \"${VBOX_NAME}\"
+Once the VM is fully booted, connect to it with the following command:
+    $(dirname "${BASH_SOURCE[0]}")/connectvm "${VBOX_NAME}"
 
 The following command will do the same (host key must be manually accepted):
-    ssh -oBatchMode=Yes -i \"${VBOX_PRIVKEY}\" root@$VBOX_IP
+    ssh -i "${VBOX_PRIVKEY}" root@${VBOX_IP}
 EOF
