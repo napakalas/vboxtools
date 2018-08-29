@@ -1,0 +1,29 @@
+#!/bin/bash -i
+set -e
+
+# include related libraries
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASENAME=$(basename ${BASH_SOURCE[0]})
+
+VBOX_NAME="$1"
+
+source $DIR/../lib/utils
+
+if [ -z "${VBOX_NAME}" ]; then
+    warn "usage: ${BASENAME} VBOX_NAME"
+    warn ""
+    warn "spawn a shell with the environment variables defined for the vm"
+    exit 2
+fi
+
+find_vm "${VBOX_NAME}" || { warn_invalid_vm "${name}" && exit 1; }
+check_vm_running "${VBOX_NAME}" || \
+    die "'${VBOX_NAME}' is not running; start it with:" \
+        "VBoxManage startvm '${VBOX_NAME}'"
+
+# only take the base config
+activate_vm "${VBOX_NAME}"
+# script="export PS1=\"(${VBOX_NAME}) ${PS1}\";$SHELL"
+warn "spawning new shell (ctrl-d to exit)"
+# $SHELL -c "${script}"
+bash --rcfile <(echo "PS1='(${VBOX_NAME}) ${PS1}'") -i
