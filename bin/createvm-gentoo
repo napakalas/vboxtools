@@ -54,6 +54,10 @@ VBoxManage startvm "${VBOX_NAME}"
 # wait for that to complete.
 wait $! || cleanup
 
+# the VBOX_IP is only available inside the subshell, re-capture this so
+# that it will be available for use on the final message.
+activate_vm "${VBOX_NAME}"
+
 wait_vm_shutdown "${VBOX_NAME}" 15 || \
     die "'${VBOX_NAME}' did not shutdown; cannot continue with verification"
 
