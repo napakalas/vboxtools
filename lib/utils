@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # change these settings to a more suitable form
@@ -75,13 +75,15 @@ set_vm_mac_ip () {
     net="$2"
     VBOX_MAC=$(
         VBoxManage showvminfo "${name}" | grep "${net}" | \
-        sed -r 's/.*MAC: ([0-9A-F]*).*/\1/' | sed -r 's/(.{2})/:\1/g' | \
-        cut -b 2-
+        gsed -r 's/.*MAC: ([0-9A-F]*).*/\1/' | gsed -r 's/(.{2})/:\1/g' | \
+        cut -b 2- | sed 's/0\([0-9A-Za-z]\)/\1/g'
     )
+    echo $VBOX_MAC
     info "mac is $VBOX_MAC"
     VBOX_IP=$(
-        arp -n | grep -i ${VBOX_MAC} | cut -d' ' -f1
+        arp -an | grep -i ${VBOX_MAC} | cut -d'(' -f2 | cut -d')' -f1
     )
+    echo $VBOX_IP 
     if [ -z $VBOX_IP ]; then
         warn "failed to derive IP"
         return 1
@@ -154,7 +156,7 @@ set_vm_common () {
     # this is an assumption
     export VBOX_NET=vboxnet0
     export VBOX_KNOWN_HOSTS=${VBOX_ROOT}/known_hosts
-    export VBOX_SSH_FLAGS=(
+    VBOX_SSH_FLAGS=(
         -oBatchMode=Yes
         -oUserKnownHostsFile="${VBOX_KNOWN_HOSTS}"
         -i "${VBOX_PRIVKEY}"
@@ -179,7 +181,7 @@ find_vm_home () {
 
     export CfgFile=$(
         echo "${vm_vars}" |grep CfgFile | cut -f2 -d= | \
-        sed -e 's/^"//' -e 's/"$//'
+        gsed -e 's/^"//' -e 's/"$//'
     )
     if [ -z "${CfgFile}" ]; then
         return 1
@@ -190,7 +192,7 @@ find_vm_home () {
     # assume first disk
     export VBOX_IMG=$(
         echo "${vm_vars}" |grep SATA-0-0 | cut -f2 -d= | \
-        sed -e 's/^"//' -e 's/"$//'
+        gsed -e 's/^"//' -e 's/"$//'
     )
 
     set_vm_common
@@ -343,8 +345,8 @@ generate_help_text () {
     for argparser in $*; do
         echo "$(type argparser_${argparser} | \
             grep -E "((-. \| )?--| __h=\")" | \
-            sed -re 's/ {8}(-.) \| (--[^\)]*)\)/\1, \2/' | \
-            sed -re 's/ {8}(--[^\)]*)\)/\1/' | \
-            sed -re 's/ {8}__h="(.*)";/\1/')" | envsubst
+            gsed -re 's/ {8}(-.) \| (--[^\)]*)\)/\1, \2/' | \
+            gsed -re 's/ {8}(--[^\)]*)\)/\1/' | \
+            gsed -re 's/ {8}__h="(.*)";/\1/')" | envsubst
     done
 }

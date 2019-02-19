@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 cleanup () {
@@ -16,7 +16,7 @@ source $DIR/../lib/gentoo
 export ARGPARSERS="common gentoo"
 
 # assigning creation only variables here.
-# TODO figure out how to best potentially override them?
+# TODO figure out how to best potentially override them?/Users/ymun794/Documents/pmr2/vboxtools/bin/activatevm
 source $DIR/../share/config/vboxtools/gentoo-base
 
 argparse "$@"

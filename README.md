@@ -1,4 +1,4 @@
-# vboxtools: VirtualBox tools
+# vboxtools: VirtualBox tools (Modifying scripts so it is able to implement in MacOS)
 
 A set of tools for spinning up VirtualBox VMs from scratch
 

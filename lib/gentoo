@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source $DIR/../lib/utils
 
@@ -37,7 +37,7 @@ download_gentoo_portage() {
     # start always from yesterday, since this is how the snapshots are
     # typically dated.
     for ((day=1; day<=age; day++)); do
-        local date=$(date -u +%Y%m%d --date="$day day ago")
+        local date=$(gdate -u +%Y%m%d --date="$day day ago")
         local url="${GENTOO_MIRROR}/snapshots/${GENTOO_PORTAGE_ID}-${date}.tar.xz"
         local target=$(basename ${url})
         wget -c -nv "${url}" && \
